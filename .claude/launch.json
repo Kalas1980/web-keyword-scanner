@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "scanner",
-      "runtimeExecutable": "/Users/patcabigan/web-keyword-scanner/.venv/bin/python",
-      "runtimeArgs": ["app.py"],
+      "runtimeExecutable": "/Users/patcabigan/Projects/web-keyword-scanner/.venv/bin/python",
+      "runtimeArgs": ["/Users/patcabigan/Projects/web-keyword-scanner/app.py"],
       "port": 5001
     }
   ]
