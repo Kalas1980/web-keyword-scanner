@@ -33,7 +33,8 @@ Key routing rules:
 - Bugs/errors → invoke /investigate
 - QA/testing site behavior → invoke /qa or /qa-only
 - Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
+- Visual polish / frontend design → invoke /impeccable (audit, critique, polish, animate, colorize, typeset)
+- Visual polish (quick) → invoke /design-review
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
