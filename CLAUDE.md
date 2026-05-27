@@ -1,3 +1,25 @@
+# web-keyword-scanner
+
+Flask web app that crawls websites and finds pages matching keywords.
+Real-time results via Server-Sent Events (SSE). Public at https://github.com/Kalas1980/web-keyword-scanner.
+
+## Stack
+- Python 3.14 / Flask / BeautifulSoup4 + lxml / requests
+- Virtual env: `.venv/` — activate with `source .venv/bin/activate`
+- Run dev server: `.venv/bin/python app.py` (port 5001 — macOS AirPlay uses 5000)
+- Run tests: `.venv/bin/pytest test_app.py -v`
+- Lint: `.venv/bin/ruff check app.py`
+- Type check: `.venv/bin/mypy app.py --ignore-missing-imports`
+- Push to GitHub: `bash push-to-github.sh` (reads GITHUB_TOKEN from .env)
+
+## Key files
+- `app.py` — Flask backend: `/scan` POST, `/stream/<id>` SSE, `/` homepage
+- `templates/index.html` — dark UI: crawl/list/both modes, live stats, export CSV
+- `test_app.py` — 19 pytest tests covering all routes and core functions
+- `.env` — GITHUB_TOKEN (gitignored, never commit)
+- `.env.example` — template for new devs
+- `Procfile` / `Dockerfile` / `render.yaml` — deploy configs (Railway / Render / Docker)
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.

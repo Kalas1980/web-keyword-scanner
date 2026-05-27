@@ -1,7 +1,28 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Secrets — never commit
 .env
+
+# macOS
 .DS_Store
+**/.DS_Store
+
+# Logs
 *.log
+
+# VS Code personal settings (workspace settings are committed; user settings are not)
+.vscode/*.code-snippets
+
+# Editor swap files
+*.swp
+*.swo

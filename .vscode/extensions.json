@@ -1,0 +1,12 @@
+{
+  // VS Code will prompt to install these when you open the project
+  "recommendations": [
+    "ms-python.python",          // Python language support + debugger
+    "ms-python.pylance",         // Fast type checking & autocomplete
+    "charliermarsh.ruff",        // Ruff linter + formatter (replaces flake8/black)
+    "ms-python.debugpy",         // Debugpy (needed for F5 Flask debugging)
+    "wholroyd.jinja",            // Jinja2/Flask template syntax highlighting
+    "eamodio.gitlens",           // Git blame, history, diff in editor
+    "ms-vscode.live-server"      // Optional: live reload for template edits
+  ]
+}
