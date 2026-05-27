@@ -15,3 +15,11 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
+
+## Health Stack
+
+- lint: .venv/bin/ruff check app.py
+- typecheck: .venv/bin/mypy app.py --ignore-missing-imports
+- test: .venv/bin/pytest test_app.py -v
+- security: .venv/bin/bandit -r app.py
+- shell: bash -n push-to-github.sh

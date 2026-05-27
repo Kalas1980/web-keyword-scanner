@@ -2,6 +2,7 @@ import json
 import os
 import queue
 import threading
+import time
 import uuid
 from urllib.parse import urljoin, urlparse
 
@@ -11,10 +12,11 @@ from flask import Flask, Response, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# Active scans: scan_id -> {"queue": Queue, "done": bool}
+# Active scans: scan_id -> {"queue": Queue, "done": bool, "ts": float}
 scans: dict = {}
 _scan_lock = threading.Lock()
 MAX_CONCURRENT_SCANS = 10   # public safety cap
+SCAN_TTL_SECONDS = 3600     # evict finished scans after 1 hour
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; KeywordScanner/1.0)"}
 
@@ -41,6 +43,15 @@ def _normalise_url(url: str) -> str:
     return url
 
 
+def _evict_old_scans() -> None:
+    """Remove scans that finished more than SCAN_TTL_SECONDS ago."""
+    cutoff = time.time() - SCAN_TTL_SECONDS
+    with _scan_lock:
+        stale = [sid for sid, s in scans.items() if s["done"] and s["ts"] < cutoff]
+        for sid in stale:
+            del scans[sid]
+
+
 def crawl_and_scan(
     scan_id: str,
     start_urls: list[str],
@@ -51,6 +62,7 @@ def crawl_and_scan(
     q: queue.Queue,
 ) -> None:
     visited: set[str] = set()
+    queued: set[str] = set(start_urls)   # URLs already in the frontier
     # (url, depth)
     frontier: list[tuple[str, int]] = [(u, 0) for u in start_urls]
     base_domains = {urlparse(u).netloc for u in start_urls}
@@ -90,13 +102,14 @@ def crawl_and_scan(
 
             if depth < max_depth:
                 for a in soup.find_all("a", href=True):
-                    full = urljoin(url, a["href"])
+                    full = urljoin(url, str(a["href"]))
                     p = urlparse(full)
                     if p.scheme not in ("http", "https"):
                         continue
                     if same_domain_only and p.netloc not in base_domains:
                         continue
-                    if full not in visited:
+                    if full not in visited and full not in queued:
+                        queued.add(full)
                         frontier.append((full, depth + 1))
 
         except Exception as exc:
@@ -104,6 +117,8 @@ def crawl_and_scan(
 
     q.put({"type": "done", "scanned": pages_scanned, "found": matches_found})
     scans[scan_id]["done"] = True
+    scans[scan_id]["ts"] = time.time()
+    _evict_old_scans()
 
 
 @app.route("/")
@@ -118,8 +133,11 @@ def start_scan():
     raw_start = _normalise_url(data.get("start_url", ""))
     raw_list = data.get("url_list", "").strip()
     keywords = [k.strip() for k in data.get("keywords", "").split(",") if k.strip()]
-    max_depth = max(0, min(int(data.get("max_depth", 2)), 5))
-    max_pages = max(1, min(int(data.get("max_pages", 50)), 200))
+    try:
+        max_depth = max(0, min(int(data.get("max_depth", 2)), 5))
+        max_pages = max(1, min(int(data.get("max_pages", 50)), 200))
+    except (ValueError, TypeError):
+        return jsonify({"error": "max_depth and max_pages must be integers."}), 400
     same_domain_only = bool(data.get("same_domain_only", True))
 
     if not keywords:
@@ -143,7 +161,7 @@ def start_scan():
 
     scan_id = str(uuid.uuid4())
     q: queue.Queue = queue.Queue()
-    scans[scan_id] = {"queue": q, "done": False}
+    scans[scan_id] = {"queue": q, "done": False, "ts": time.time()}
 
     threading.Thread(
         target=crawl_and_scan,
